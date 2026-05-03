@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-bg: var(--bg-main);
+  --color-brand-surface: var(--bg-surface);
+  --color-brand-border: var(--border-color);
+  --color-brand-text: var(--text-primary);
+  --color-brand-muted: var(--text-secondary);
+  --color-brand-accent: #2563eb;
+  --color-brand-accent-hover: #1d4ed8;
+  --color-brand-accent-subtle: var(--accent-subtle-bg);
+  --color-brand-accent-subtle-text: var(--accent-subtle-text);
+  --color-brand-success: #22c55e;
+  --color-brand-success-bg: var(--success-bg);
+  --color-brand-warning: #f59e0b;
+  --color-brand-warning-bg: var(--warning-bg);
+  --color-brand-danger: #ef4444;
+  --color-brand-danger-bg: var(--danger-bg);
+  --color-brand-code-bg: var(--code-bg);
+}
+
+:root {
+  --bg-main: #111111;
+  --bg-surface: #1a1a1a;
+  --border-color: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: #888888;
+  --accent-subtle-bg: #1e3a5f;
+  --accent-subtle-text: #2563eb;
+  --success-bg: #1a2e1a;
+  --warning-bg: #2a1f0a;
+  --danger-bg: #2a0f0f;
+  --code-bg: #0d0d0d;
+}
+
+.light {
+  --bg-main: #ffffff;
+  --bg-surface: #f9f9f9;
+  --border-color: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --accent-subtle-bg: #eff6ff;
+  --accent-subtle-text: #2563eb;
+  --success-bg: #f0fdf4;
+  --warning-bg: #fffbeb;
+  --danger-bg: #fef2f2;
+  --code-bg: #f3f4f6;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text font-sans antialiased transition-colors duration-200;
+  }
+
+  h1, h2, h3, h4, h5, h6, strong, b {
+    @apply font-medium !font-medium;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .tooltip-trigger {
+    @apply relative;
+  }
+
+  .tooltip {
+    @apply invisible absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1a1a1a] text-white text-[12px] rounded opacity-0 transition-all duration-200 whitespace-nowrap z-50;
+  }
+
+  .light .tooltip {
+    @apply bg-[#111827];
+  }
+
+  .tooltip-trigger:hover .tooltip {
+    @apply visible opacity-100;
+  }
+}
