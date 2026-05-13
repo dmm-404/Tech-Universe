@@ -71,8 +71,7 @@ def connect_to_server():
         data = s.recv(1024)
     
     print(f'Received {len(data)} bytes')`
-    },
-    resources: [
+        s.sendall(b'GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')    resources: [
       { title: "Computer Networking: A Top-Down Approach", type: "Book", url: "#" },
       { title: "TCP/IP Illustrated", type: "Book", url: "#" },
       { title: "Cisco Networking Basics", type: "Course", url: "#" }
