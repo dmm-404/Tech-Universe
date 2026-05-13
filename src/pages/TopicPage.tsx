@@ -1,4 +1,3 @@
-```tsx
 import { Link, useParams } from "react-router-dom";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
