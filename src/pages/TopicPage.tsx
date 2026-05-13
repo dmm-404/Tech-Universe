@@ -1,12 +1,18 @@
 import { Link, useParams } from "react-router-dom";
-import { Check, ChevronDown, ChevronRight, ArrowRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
+
+interface RoadmapNode {
+  title: string;
+  subItems: string[];
+}
 
 // Topic data structure
 interface TopicData {
   id: string;
   title: string;
   branch: string;
+  branchName: string;
   tags: string[];
   readTime: string;
   difficulty: string;
@@ -27,6 +33,7 @@ interface TopicData {
     type: string;
     url: string;
   }>;
+  roadmap: RoadmapNode[];
 }
 
 // Topics database
@@ -35,6 +42,7 @@ const topicsData: Record<string, TopicData> = {
     id: "networking-fundamentals",
     title: "Networking Fundamentals",
     branch: "computer-networks",
+    branchName: "Computer Networks",
     tags: ["Networking", "TCP/IP", "OSI Model"],
     readTime: "18 min read",
     difficulty: "Beginner",
@@ -68,12 +76,18 @@ def connect_to_server():
       { title: "Computer Networking: A Top-Down Approach", type: "Book", url: "#" },
       { title: "TCP/IP Illustrated", type: "Book", url: "#" },
       { title: "Cisco Networking Basics", type: "Course", url: "#" }
+    ],
+    roadmap: [
+      { title: "Network Architecture", subItems: ["OSI Model", "TCP/IP Suite", "Network Topologies"] },
+      { title: "Physical Layer", subItems: ["Cables and Connectors", "Switches and Hubs", "Wireless Transmission"] },
+      { title: "Network Layer", subItems: ["IP Addressing", "Subnetting", "Routing Protocols"] }
     ]
   },
   "http-protocol": {
     id: "http-protocol",
     title: "HTTP Protocol",
     branch: "computer-networks",
+    branchName: "Computer Networks",
     tags: ["HTTP", "Web", "REST"],
     readTime: "12 min read",
     difficulty: "Beginner",
@@ -91,12 +105,18 @@ def connect_to_server():
     resources: [
       { title: "MDN HTTP Documentation", type: "Docs", url: "#" },
       { title: "HTTP: The Definitive Guide", type: "Book", url: "#" }
+    ],
+    roadmap: [
+      { title: "HTTP Basics", subItems: ["Request/Response Cycle", "HTTP Methods", "Status Codes"] },
+      { title: "Headers & Body", subItems: ["General Headers", "Request Headers", "Response Headers"] },
+      { title: "Advanced Topics", subItems: ["Cookies & Sessions", "CORS", "Caching"] }
     ]
   },
   "machine-learning-basics": {
     id: "machine-learning-basics",
     title: "Machine Learning Basics",
     branch: "ai",
+    branchName: "Artificial Intelligence",
     tags: ["ML", "AI", "Algorithms"],
     readTime: "20 min read",
     difficulty: "Intermediate",
@@ -114,12 +134,18 @@ def connect_to_server():
     resources: [
       { title: "Pattern Recognition and Machine Learning", type: "Book", url: "#" },
       { title: "Coursera ML Course", type: "Course", url: "#" }
+    ],
+    roadmap: [
+      { title: "Foundations", subItems: ["Linear Algebra", "Calculus", "Probability"] },
+      { title: "Supervised Learning", subItems: ["Linear Regression", "Logistic Regression", "Decision Trees"] },
+      { title: "Unsupervised Learning", subItems: ["K-Means Clustering", "PCA", "Anomaly Detection"] }
     ]
   },
   "cloud-computing-intro": {
     id: "cloud-computing-intro",
     title: "Cloud Computing Introduction",
     branch: "cloud",
+    branchName: "Cloud Computing",
     tags: ["Cloud", "AWS", "Azure"],
     readTime: "15 min read",
     difficulty: "Beginner",
@@ -137,6 +163,11 @@ def connect_to_server():
     resources: [
       { title: "AWS Documentation", type: "Docs", url: "#" },
       { title: "Cloud Computing Fundamentals", type: "Course", url: "#" }
+    ],
+    roadmap: [
+      { title: "Cloud Models", subItems: ["IaaS, PaaS, SaaS", "Public vs Private vs Hybrid", "Cloud Economics"] },
+      { title: "Core Services", subItems: ["Compute (EC2/VMs)", "Storage (S3/Blob)", "Networking (VPC)"] },
+      { title: "Security & Management", subItems: ["IAM", "Monitoring & Logging", "Cost Management"] }
     ]
   }
 };
@@ -168,8 +199,8 @@ export default function TopicPage() {
       <nav className="flex items-center gap-2 text-sm text-brand-muted mb-8">
         <Link to="/" className="hover:text-brand-accent transition-colors">Home</Link>
         <span>/</span>
-        <Link to="/branches/networks" className="hover:text-brand-accent transition-colors">
-          Computer Networks
+        <Link to={`/branches/${topicData.branch}`} className="hover:text-brand-accent transition-colors">
+          {topicData.branchName}
         </Link>
         <span>/</span>
         <span className="text-brand-text">{topicData.title}</span>
@@ -254,19 +285,66 @@ export default function TopicPage() {
         {/* Learn It Section */}
         <section id="learn-it" className="mb-16">
           <h2 className="text-2xl mb-8">Learn It</h2>
-          <div className="space-y-3">
-            {topicData.resources.map((resource, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-brand-surface border border-brand-border rounded-lg p-4 hover:border-brand-accent transition-colors"
-              >
-                <div>
-                  <h3 className="text-brand-text font-medium">{resource.title}</h3>
-                  <span className="text-xs text-brand-muted">{resource.type}</span>
-                </div>
-                <ArrowRight className="w-5 h-5 text-brand-accent" />
-              </div>
-            ))}
+          
+          <div className="relative">
+            {/* Connecting line */}
+            <div className="absolute left-[27px] top-6 bottom-6 w-0.5 bg-brand-border" />
+            
+            <div className="space-y-4 relative">
+              {topicData.roadmap.map((node, index) => {
+                const isExpanded = expandedMode === index;
+                
+                return (
+                  <div key={index} className="relative">
+                    {/* Number Node */}
+                    <div 
+                      className={\`absolute left-0 top-3 w-[56px] h-[56px] rounded-full border-2 flex items-center justify-center font-bold text-lg bg-brand-background transition-colors cursor-pointer z-10
+                        \${isExpanded 
+                          ? 'border-brand-accent text-brand-accent' 
+                          : 'border-brand-border text-brand-muted hover:border-brand-muted'}\`}
+                      onClick={() => setExpandedMode(isExpanded ? null : index)}
+                    >
+                      {index + 1}
+                    </div>
+
+                    {/* Content Card */}
+                    <div className="ml-20">
+                      <div 
+                        className={\`bg-brand-surface border rounded-lg overflow-hidden transition-all duration-300
+                          \${isExpanded ? 'border-brand-accent' : 'border-brand-border'}\`}
+                      >
+                        {/* Header */}
+                        <div 
+                          className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-brand-surface/80"
+                          onClick={() => setExpandedMode(isExpanded ? null : index)}
+                        >
+                          <h3 className={\`font-semibold \${isExpanded ? 'text-brand-accent' : 'text-brand-text'}\`}>
+                            {node.title}
+                          </h3>
+                          <div className="text-brand-muted">
+                            {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                          </div>
+                        </div>
+
+                        {/* Expandable Content */}
+                        {isExpanded && (
+                          <div className="px-6 pb-5 pt-2 border-t border-brand-border/50">
+                            <ul className="space-y-3">
+                              {node.subItems.map((item, itemIdx) => (
+                                <li key={itemIdx} className="flex items-start text-sm">
+                                  <Check className="w-4 h-4 text-brand-accent mr-3 mt-0.5 flex-shrink-0" />
+                                  <span className="text-brand-muted">{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       </div>
