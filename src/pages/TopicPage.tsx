@@ -58,20 +58,22 @@ const topicsData: Record<string, TopicData> = {
       "Information is broken down into smaller chunks called packets. These packets travel across various routes, potentially arriving out of order, and are reassembled at their destination."
     ],
     codeExample: {
-      filename: "example.py",
-      code: `import socket
+  filename: "example.py",
+  code: `import socket
 
 def connect_to_server():
     host = 'example.com'
     port = 80
-    
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
         s.sendall(b'GET / HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n')
         data = s.recv(1024)
-    
-    print(f'Received {len(data)} bytes')`
-        s.sendall(b'GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')    resources: [
+
+    print(f'Received {len(data)} bytes')
+`,
+},
+resources: [
       { title: "Computer Networking: A Top-Down Approach", type: "Book", url: "#" },
       { title: "TCP/IP Illustrated", type: "Book", url: "#" },
       { title: "Cisco Networking Basics", type: "Course", url: "#" }
