@@ -1,3 +1,4 @@
+```tsx
 import { Link, useParams } from "react-router-dom";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -58,8 +59,8 @@ const topicsData: Record<string, TopicData> = {
       "Information is broken down into smaller chunks called packets. These packets travel across various routes, potentially arriving out of order, and are reassembled at their destination."
     ],
     codeExample: {
-  filename: "example.py",
-  code: `import socket
+      filename: "example.py",
+      code: `import socket
 
 def connect_to_server():
     host = 'example.com'
@@ -70,10 +71,9 @@ def connect_to_server():
         s.sendall(b'GET / HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n')
         data = s.recv(1024)
 
-    print(f'Received {len(data)} bytes')
-`,
-},
-resources: [
+    print(f'Received {len(data)} bytes')`
+    },
+    resources: [
       { title: "Computer Networking: A Top-Down Approach", type: "Book", url: "#" },
       { title: "TCP/IP Illustrated", type: "Book", url: "#" },
       { title: "Cisco Networking Basics", type: "Course", url: "#" }
@@ -84,6 +84,7 @@ resources: [
       { title: "Network Layer", subItems: ["IP Addressing", "Subnetting", "Routing Protocols"] }
     ]
   },
+
   "http-protocol": {
     id: "http-protocol",
     title: "HTTP Protocol",
@@ -113,6 +114,7 @@ resources: [
       { title: "Advanced Topics", subItems: ["Cookies & Sessions", "CORS", "Caching"] }
     ]
   },
+
   "machine-learning-basics": {
     id: "machine-learning-basics",
     title: "Machine Learning Basics",
@@ -142,6 +144,7 @@ resources: [
       { title: "Unsupervised Learning", subItems: ["K-Means Clustering", "PCA", "Anomaly Detection"] }
     ]
   },
+
   "cloud-computing-intro": {
     id: "cloud-computing-intro",
     title: "Cloud Computing Introduction",
@@ -198,9 +201,14 @@ export default function TopicPage() {
     <div className="container-custom py-12">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-brand-muted mb-8">
-        <Link to="/" className="hover:text-brand-accent transition-colors">Home</Link>
+        <Link to="/" className="hover:text-brand-accent transition-colors">
+          Home
+        </Link>
         <span>/</span>
-        <Link to={`/branches/${topicData.branch}`} className="hover:text-brand-accent transition-colors">
+        <Link
+          to={`/branches/${topicData.branch}`}
+          className="hover:text-brand-accent transition-colors"
+        >
           {topicData.branchName}
         </Link>
         <span>/</span>
@@ -212,6 +220,7 @@ export default function TopicPage() {
         {/* Header */}
         <header className="mb-12">
           <h1 className="text-4xl text-brand-text">{topicData.title}</h1>
+
           <div className="mt-6 flex flex-wrap gap-2">
             {topicData.tags.map((tag, index) => (
               <span
@@ -222,6 +231,7 @@ export default function TopicPage() {
               </span>
             ))}
           </div>
+
           <div className="mt-6 flex flex-wrap gap-2">
             <span className="bg-[#1e3a5f] text-brand-text text-[12px] text-brand-muted">
               {topicData.readTime}
@@ -235,23 +245,28 @@ export default function TopicPage() {
         {/* The Story Section */}
         <section id="story" className="mb-16">
           <h2 className="text-2xl mb-8">The Story</h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-brand-surface border border-brand-border rounded-lg p-5">
               <span className="text-[11px] uppercase tracking-wider text-brand-muted">Why</span>
               <p className="mt-3 text-sm text-brand-text">{topicData.story.why}</p>
             </div>
+
             <div className="bg-brand-surface border border-brand-border rounded-lg p-5">
               <span className="text-[11px] uppercase tracking-wider text-brand-muted">Who</span>
               <p className="mt-3 text-sm text-brand-text">{topicData.story.who}</p>
             </div>
+
             <div className="bg-brand-surface border border-brand-border rounded-lg p-5">
               <span className="text-[11px] uppercase tracking-wider text-brand-muted">Where</span>
               <p className="mt-3 text-sm text-brand-text">{topicData.story.where}</p>
             </div>
+
             <div className="bg-brand-surface border border-brand-border rounded-lg p-5">
               <span className="text-[11px] uppercase tracking-wider text-brand-muted">When</span>
               <p className="mt-3 text-sm text-brand-text">{topicData.story.when}</p>
             </div>
+
             <div className="bg-brand-surface border border-brand-border rounded-lg p-5 md:col-span-2">
               <span className="text-[11px] uppercase tracking-wider text-brand-muted">What</span>
               <p className="mt-3 text-sm text-brand-text">{topicData.story.what}</p>
@@ -262,6 +277,7 @@ export default function TopicPage() {
         {/* How It Works Section */}
         <section id="how-it-works" className="mb-16">
           <h2 className="text-2xl mb-8">How It Works</h2>
+
           <div className="space-y-6 text-brand-muted leading-relaxed">
             {topicData.howItWorks.map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
@@ -271,11 +287,15 @@ export default function TopicPage() {
           {topicData.codeExample && (
             <div className="mt-8 overflow-hidden bg-[#0d0d0d] border border-brand-border rounded-lg font-mono text-sm">
               <div className="flex justify-between items-center px-4 py-2 border-b border-brand-border bg-brand-surface/30">
-                <span className="text-xs text-brand-muted">{topicData.codeExample.filename}</span>
+                <span className="text-xs text-brand-muted">
+                  {topicData.codeExample.filename}
+                </span>
+
                 <button className="text-xs text-brand-muted hover:text-brand-text transition-colors">
                   Copy
                 </button>
               </div>
+
               <pre className="p-4 overflow-x-auto text-brand-text">
                 <code>{topicData.codeExample.code}</code>
               </pre>
@@ -286,23 +306,25 @@ export default function TopicPage() {
         {/* Learn It Section */}
         <section id="learn-it" className="mb-16">
           <h2 className="text-2xl mb-8">Learn It</h2>
-          
+
           <div className="relative">
             {/* Connecting line */}
             <div className="absolute left-[27px] top-6 bottom-6 w-0.5 bg-brand-border" />
-            
+
             <div className="space-y-4 relative">
               {topicData.roadmap.map((node, index) => {
                 const isExpanded = expandedMode === index;
-                
+
                 return (
                   <div key={index} className="relative">
                     {/* Number Node */}
-                    <div 
-                      className={\`absolute left-0 top-3 w-[56px] h-[56px] rounded-full border-2 flex items-center justify-center font-bold text-lg bg-brand-background transition-colors cursor-pointer z-10
-                        \${isExpanded 
-                          ? 'border-brand-accent text-brand-accent' 
-                          : 'border-brand-border text-brand-muted hover:border-brand-muted'}\`}
+                    <div
+                      className={`absolute left-0 top-3 w-[56px] h-[56px] rounded-full border-2 flex items-center justify-center font-bold text-lg bg-brand-background transition-colors cursor-pointer z-10
+                        ${
+                          isExpanded
+                            ? 'border-brand-accent text-brand-accent'
+                            : 'border-brand-border text-brand-muted hover:border-brand-muted'
+                        }`}
                       onClick={() => setExpandedMode(isExpanded ? null : index)}
                     >
                       {index + 1}
@@ -310,20 +332,29 @@ export default function TopicPage() {
 
                     {/* Content Card */}
                     <div className="ml-20">
-                      <div 
-                        className={\`bg-brand-surface border rounded-lg overflow-hidden transition-all duration-300
-                          \${isExpanded ? 'border-brand-accent' : 'border-brand-border'}\`}
+                      <div
+                        className={`bg-brand-surface border rounded-lg overflow-hidden transition-all duration-300
+                          ${isExpanded ? 'border-brand-accent' : 'border-brand-border'}`}
                       >
                         {/* Header */}
-                        <div 
+                        <div
                           className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-brand-surface/80"
                           onClick={() => setExpandedMode(isExpanded ? null : index)}
                         >
-                          <h3 className={\`font-semibold \${isExpanded ? 'text-brand-accent' : 'text-brand-text'}\`}>
+                          <h3
+                            className={`font-semibold ${
+                              isExpanded ? 'text-brand-accent' : 'text-brand-text'
+                            }`}
+                          >
                             {node.title}
                           </h3>
+
                           <div className="text-brand-muted">
-                            {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                            {isExpanded ? (
+                              <ChevronDown size={20} />
+                            ) : (
+                              <ChevronRight size={20} />
+                            )}
                           </div>
                         </div>
 
@@ -352,3 +383,4 @@ export default function TopicPage() {
     </div>
   );
 }
+```
