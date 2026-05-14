@@ -623,8 +623,6 @@ const TimelinePage = () => {
             transition={{ delay: 0.4 }}
             className="text-brand-accent font-medium text-lg"
           >
-            <span className="text-3xl font-bold">{milestonesConquered}</span>
-            <span className="text-brand-text-secondary"> / {totalMilestones} Milestones Discovered</span>
           </motion.div>
         </div>
       </motion.div>
