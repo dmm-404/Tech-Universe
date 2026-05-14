@@ -14,6 +14,7 @@ import LegendsPage from "./pages/LegendsPage";
 import LegendDetailPage from "./pages/LegendDetailPage";
 import AboutPage from "./pages/AboutPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import TimelinePage from "./pages/TimelinePage";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/legends" element={<LegendsPage />} />
           <Route path="/legends/:legend" element={<LegendDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
+                    <Route path="/timeline" element={<TimelinePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Layout>
