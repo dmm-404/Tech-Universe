@@ -42,7 +42,7 @@ const Hero = () => (
       <Link to="/branches" className="px-6 py-2.5 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-lg font-medium transition-colors">
         Start Exploring
       </Link>
-<Link to="/timeline" className="w-full px-6 py-2.5 bg-transparent border border-brand-border hover:border-brand-muted text-brand-muted hover:text-brand-text rounded-lg font-medium transition-all block text-center">
+<Link to="/timeline" className="px-6 py-2.5 bg-transparent border border-brand-border hover:border-brand-muted text-brand-muted hover:text-brand-text rounded-lg font-medium transition-all block text-center">
                 View Timeline
               </Link>
     </motion.div>
