@@ -1,12 +1,18 @@
 import { useParams, Link } from "react-router-dom";
-import { Check, Lock, Play } from "lucide-react";
+import { Check, Lock, Play, ArrowRight } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
+// ============ INTERFACES ============
 interface RoadmapNode {
   id: number;
   title: string;
   status: "completed" | "in-progress" | "locked";
   desc: string;
   slug: string;
+  row: number; // for graph layout positioning
+  col: number; // for graph layout positioning  
+  dependencies?: number[]; // IDs of prerequisite nodes
 }
 
 interface Foundation {
@@ -23,6 +29,35 @@ interface CareerData {
   foundations: Foundation[];
 }
 
+// ============ STATUS CONFIG ============
+const statusConfig = {
+  completed: {
+    icon: Check,
+    label: "Completed",
+    color: "text-emerald-400",
+    bg: "bg-emerald-950/30",
+    border: "border-emerald-800/50",
+    glow: "shadow-emerald-900/50"
+  },
+  "in-progress": {
+    icon: Play,
+    label: "In Progress",
+    color: "text-blue-400",
+    bg: "bg-blue-950/30",
+    border: "border-blue-800/50",
+    glow: "shadow-blue-900/50"
+  },
+  locked: {
+    icon: Lock,
+    label: "Locked",
+    color: "text-brand-muted",
+    bg: "bg-brand-background",
+    border: "border-brand-border",
+    glow: "shadow-brand-border/20"
+  }
+};
+
+// ============ CAREER DATA ============
 const careersData: Record<string, CareerData> = {
   "cybersecurity-analyst": {
     title: "Cybersecurity Analyst",
@@ -30,176 +65,298 @@ const careersData: Record<string, CareerData> = {
     demand: "Very High Demand",
     description: "Cybersecurity analysts monitor, detect, and respond to security threats. They protect an organisation's infrastructure from breaches, malware, and unauthorised access.",
     roadmap: [
-      { id: 1, title: "Computer Networking", status: "completed", desc: "Understanding how data travels through the web.", slug: "networking-fundamentals" },
-      { id: 2, title: "Linux Basics", status: "completed", desc: "Command line, file systems, and server management.", slug: "linux-basics" },
-      { id: 3, title: "How the Internet Works", status: "in-progress", desc: "DNS, HTTP/S, and global traffic routing.", slug: "how-the-internet-works" },
-      { id: 4, title: "Cryptography Basics", status: "locked", desc: "Protocols, encryption standards, and PKI.", slug: "cryptography-basics" },
-      { id: 5, title: "Security Architecture", status: "locked", desc: "Designing robust and resilient systems.", slug: "security-architecture" },
-      { id: 6, title: "Identity & Access Management", status: "locked", desc: "IAM frameworks and zero trust.", slug: "iam" },
-      { id: 7, title: "Threat Intelligence", status: "locked", desc: "CTI frameworks and proactive threat hunting.", slug: "threat-intelligence" },
-      { id: 8, title: "Incident Response", status: "locked", desc: "Detecting and responding to security breaches.", slug: "incident-response" }
+      { id: 1, title: "Computer Networking", status: "completed", desc: "Understanding how data travels through the web.", slug: "networking", row: 0, col: 0, dependencies: [] },
+      { id: 2, title: "Linux Basics", status: "completed", desc: "Command line, file systems, and server management.", slug: "linux", row: 0, col: 2, dependencies: [] },
+      { id: 3, title: "How the Internet Works", status: "in-progress", desc: "Protocols, DNS, HTTP/HTTPS, and network layers.", slug: "how-internet-works", row: 1, col: 1, dependencies: [1, 2] },
+      { id: 4, title: "Cybersecurity Fundamentals", status: "in-progress", desc: "Core principles and threat landscape.", slug: "cybersecurity-fundamentals", row: 2, col: 1, dependencies: [3] },
+      { id: 5, title: "Ethical Hacking", status: "locked", desc: "Penetration testing and vulnerability assessment.", slug: "ethical-hacking", row: 3, col: 0, dependencies: [4] },
+      { id: 6, title: "Security Operations", status: "locked", desc: "SIEM, incident response, and threat hunting.", slug: "security-operations", row: 3, col: 2, dependencies: [4] }
     ],
     foundations: [
       { title: "Networking", desc: "Crucial for understanding how attacks traverse systems." },
       { title: "Linux", desc: "The primary OS for security tools and server infrastructure." },
-      { title: "Git", desc: "Version control for scripts, configs, and documentation." },
-      { title: "Python", desc: "Automation, scripting, and custom tool development." }
+      { title: "Git", desc: "Version control for security scripts and documentation." }
     ]
   },
   "cloud-devops-engineer": {
-    title: "Cloud / DevOps Engineer",
-    tagline: "Build, automate, and scale infrastructure in the cloud.",
-    demand: "Fast Growth",
-    description: "Cloud and DevOps engineers bridge development and operations. They design CI/CD pipelines, manage cloud infrastructure, and ensure systems are reliable and scalable.",
+    title: "Cloud DevOps Engineer",
+    tagline: "Build, deploy, and maintain scalable cloud infrastructure.",
+    demand: "Very High Demand",
+    description: "Cloud DevOps engineers automate infrastructure, manage CI/CD pipelines, and ensure reliable deployments across cloud platforms.",
     roadmap: [
-      { id: 1, title: "Linux & Bash", status: "completed", desc: "Command line, shell scripting, and server administration.", slug: "linux-basics" },
-      { id: 2, title: "Networking Fundamentals", status: "completed", desc: "TCP/IP, DNS, load balancers, and VPCs.", slug: "networking-fundamentals" },
-      { id: 3, title: "Git & Version Control", status: "in-progress", desc: "Git workflows, branching, and collaboration.", slug: "git" },
-      { id: 4, title: "Docker & Containers", status: "locked", desc: "Containerisation, images, and Docker Compose.", slug: "docker" },
-      { id: 5, title: "Kubernetes", status: "locked", desc: "Orchestration, pods, deployments, and Helm.", slug: "kubernetes" },
-      { id: 6, title: "CI/CD Pipelines", status: "locked", desc: "GitHub Actions, Jenkins, and automated testing.", slug: "cicd" },
-      { id: 7, title: "Infrastructure as Code", status: "locked", desc: "Terraform, Ansible, and CloudFormation.", slug: "iac" },
-      { id: 8, title: "Cloud Platforms", status: "locked", desc: "AWS, GCP, or Azure services and architecture.", slug: "cloud-platforms" }
+      { id: 1, title: "Linux Fundamentals", status: "completed", desc: "Server management and shell scripting.", slug: "linux", row: 0, col: 0, dependencies: [] },
+      { id: 2, title: "Networking Basics", status: "completed", desc: "TCP/IP, DNS, load balancing.", slug: "networking", row: 0, col: 2, dependencies: [] },
+      { id: 3, title: "Version Control (Git)", status: "in-progress", desc: "Branching, merging, and collaboration workflows.", slug: "git", row: 1, col: 1, dependencies: [1] },
+      { id: 4, title: "Docker & Containers", status: "locked", desc: "Containerization and orchestration basics.", slug: "docker", row: 2, col: 0, dependencies: [1, 3] },
+      { id: 5, title: "Kubernetes", status: "locked", desc: "Container orchestration at scale.", slug: "kubernetes", row: 3, col: 0, dependencies: [4] },
+      { id: 6, title: "CI/CD Pipelines", status: "locked", desc: "Automated testing and deployment.", slug: "cicd", row: 2, col: 2, dependencies: [3] },
+      { id: 7, title: "Cloud Platforms (AWS/Azure)", status: "locked", desc: "Infrastructure as code and cloud services.", slug: "cloud-platforms", row: 3, col: 2, dependencies: [6] }
     ],
     foundations: [
-      { title: "Linux", desc: "Mandatory foundation for all cloud and DevOps work." },
-      { title: "Python", desc: "Scripting, automation, and infrastructure tooling." },
-      { title: "Git", desc: "Essential for managing infrastructure and application code." },
-      { title: "Networking", desc: "VPCs, load balancers, DNS — all require network fundamentals." }
+      { title: "Linux", desc: "Foundation for server management and automation." },
+      { title: "Networking", desc: "Understanding traffic flow and infrastructure." },
+      { title: "Python", desc: "Scripting for automation and tooling." }
     ]
   },
   "ai-ml-engineer": {
-    title: "AI / ML Engineer",
+    title: "AI/ML Engineer",
     tagline: "Build intelligent systems that learn from data.",
-    demand: "Highest Entry Salaries",
-    description: "AI and ML engineers design, build, and deploy machine learning models and intelligent systems. They work across the full pipeline from data to production model serving.",
+    demand: "Extremely High Demand",
+    description: "AI/ML engineers design, train, and deploy machine learning models to solve real-world problems through pattern recognition and prediction.",
     roadmap: [
-      { id: 1, title: "Python for ML", status: "completed", desc: "NumPy, Pandas, and Python ML ecosystem basics.", slug: "python-basics" },
-      { id: 2, title: "Mathematics for ML", status: "completed", desc: "Linear algebra, calculus, probability, and statistics.", slug: "ml-mathematics" },
-      { id: 3, title: "Machine Learning Fundamentals", status: "in-progress", desc: "Supervised, unsupervised learning, and evaluation metrics.", slug: "ml-fundamentals" },
-      { id: 4, title: "Deep Learning", status: "locked", desc: "Neural networks, CNNs, RNNs, and Transformers.", slug: "deep-learning" },
-      { id: 5, title: "Natural Language Processing", status: "locked", desc: "Text processing, embeddings, and LLMs.", slug: "nlp" },
-      { id: 6, title: "MLOps & Deployment", status: "locked", desc: "Model serving, versioning, and monitoring.", slug: "mlops" },
-      { id: 7, title: "Computer Vision", status: "locked", desc: "Image classification, detection, and segmentation.", slug: "computer-vision" },
-      { id: 8, title: "LLMs & Generative AI", status: "locked", desc: "Prompt engineering, RAG, and fine-tuning.", slug: "llms" }
+      { id: 1, title: "Python Programming", status: "completed", desc: "Core language for ML and data science.", slug: "python", row: 0, col: 1, dependencies: [] },
+      { id: 2, title: "Mathematics for ML", status: "in-progress", desc: "Linear algebra, calculus, and statistics.", slug: "mathematics", row: 1, col: 0, dependencies: [1] },
+      { id: 3, title: "Data Structures & Algorithms", status: "in-progress", desc: "Efficient data manipulation and problem-solving.", slug: "dsa", row: 1, col: 2, dependencies: [1] },
+      { id: 4, title: "Machine Learning Fundamentals", status: "locked", desc: "Supervised and unsupervised learning basics.", slug: "ml-fundamentals", row: 2, col: 1, dependencies: [2, 3] },
+      { id: 5, title: "Deep Learning", status: "locked", desc: "Neural networks and advanced architectures.", slug: "deep-learning", row: 3, col: 0, dependencies: [4] },
+      { id: 6, title: "MLOps & Deployment", status: "locked", desc: "Model deployment and monitoring in production.", slug: "mlops", row: 3, col: 2, dependencies: [4] }
     ],
     foundations: [
-      { title: "Python", desc: "The primary language for all ML and AI work." },
-      { title: "Mathematics", desc: "Linear algebra and statistics underpin every algorithm." },
-      { title: "Git", desc: "Version control for models, experiments, and code." },
-      { title: "SQL", desc: "Data querying and manipulation for training datasets." }
+      { title: "Python", desc: "The lingua franca of machine learning." },
+      { title: "Mathematics", desc: "Essential for understanding ML algorithms." },
+      { title: "Git", desc: "Version control for ML experiments." }
     ]
   },
   "data-scientist": {
     title: "Data Scientist",
     tagline: "Extract insights and drive decisions through data analysis.",
-    demand: "Rising Demand",
-    description: "Data scientists collect, process, and analyse large datasets to uncover patterns and insights. They use statistics, machine learning, and visualisation to inform business decisions.",
+    demand: "Very High Demand",
+    description: "Data scientists analyze complex datasets, build predictive models, and communicate findings to stakeholders through visualization and storytelling.",
     roadmap: [
-      { id: 1, title: "Python & R Basics", status: "completed", desc: "Data manipulation with Pandas, NumPy, and tidyverse.", slug: "python-basics" },
-      { id: 2, title: "Statistics & Probability", status: "completed", desc: "Descriptive, inferential statistics, and distributions.", slug: "statistics" },
-      { id: 3, title: "SQL & Databases", status: "in-progress", desc: "Querying, joins, aggregations, and data warehouses.", slug: "sql" },
-      { id: 4, title: "Data Visualisation", status: "locked", desc: "Matplotlib, Seaborn, Plotly, and Tableau.", slug: "data-visualisation" },
-      { id: 5, title: "Machine Learning", status: "locked", desc: "Regression, classification, clustering, and ensembles.", slug: "ml-fundamentals" },
-      { id: 6, title: "A/B Testing", status: "locked", desc: "Experiment design, hypothesis testing, and significance.", slug: "ab-testing" },
-      { id: 7, title: "Big Data Tools", status: "locked", desc: "Spark, Kafka, and distributed data processing.", slug: "big-data" },
-      { id: 8, title: "Feature Engineering", status: "locked", desc: "Transforming raw data into meaningful ML features.", slug: "feature-engineering" }
+      { id: 1, title: "Python & SQL", status: "completed", desc: "Languages for data manipulation and queries.", slug: "python", row: 0, col: 1, dependencies: [] },
+      { id: 2, title: "Statistics & Probability", status: "completed", desc: "Foundation for data analysis.", slug: "statistics", row: 1, col: 0, dependencies: [1] },
+      { id: 3, title: "Data Wrangling", status: "in-progress", desc: "Cleaning and transforming raw data.", slug: "data-wrangling", row: 1, col: 2, dependencies: [1] },
+      { id: 4, title: "Data Visualization", status: "locked", desc: "Communicating insights through charts and dashboards.", slug: "data-viz", row: 2, col: 1, dependencies: [3] },
+      { id: 5, title: "Machine Learning", status: "locked", desc: "Building predictive models.", slug: "ml", row: 3, col: 0, dependencies: [2, 4] },
+      { id: 6, title: "Big Data Tools", status: "locked", desc: "Spark, Hadoop, and distributed computing.", slug: "big-data", row: 3, col: 2, dependencies: [4] }
     ],
     foundations: [
-      { title: "Python", desc: "Core language for data manipulation and modelling." },
-      { title: "SQL", desc: "Essential for extracting and querying datasets." },
-      { title: "Statistics", desc: "The theoretical backbone of all data science work." },
-      { title: "Git", desc: "Versioning notebooks, scripts, and analysis pipelines." }
+      { title: "Python", desc: "Primary language for data analysis." },
+      { title: "SQL", desc: "Querying and managing databases." },
+      { title: "Statistics", desc: "Mathematical foundation for insights." }
     ]
   }
 };
 
-const statusConfig = {
-  completed: { icon: Check, label: "Completed", color: "text-green-400", border: "border-green-800", bg: "bg-green-950" },
-  "in-progress": { icon: Play, label: "In Progress", color: "text-brand-accent", border: "border-brand-accent", bg: "bg-[#1e3a5f]" },
-  locked: { icon: Lock, label: "Locked", color: "text-brand-muted", border: "border-brand-border", bg: "bg-brand-surface" },
-};
+// ============ ROADMAP GRAPH COMPONENT ============
+function RoadmapGraph({ nodes }: { nodes: RoadmapNode[] }) {
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
 
+  // Calculate grid dimensions
+  const maxRow = Math.max(...nodes.map(n => n.row));
+  const maxCol = Math.max(...nodes.map(n => n.col));
+
+  return (
+    <div className="relative w-full overflow-x-auto py-12">
+      <div 
+        className="relative mx-auto"
+        style={{
+          minWidth: `${(maxCol + 1) * 320}px`,
+          minHeight: `${(maxRow + 1) * 200}px`
+        }}
+      >
+        {/* Connection Lines */}
+        <svg 
+          className="absolute inset-0 pointer-events-none" 
+          style={{ width: '100%', height: '100%' }}
+        >
+          {nodes.map(node => 
+            node.dependencies?.map(depId => {
+              const depNode = nodes.find(n => n.id === depId);
+              if (!depNode) return null;
+
+              const x1 = depNode.col * 320 + 140;
+              const y1 = depNode.row * 200 + 80;
+              const x2 = node.col * 320 + 140;
+              const y2 = node.row * 200 + 80;
+
+              const isHighlighted = hoveredNode === node.id || hoveredNode === depId;
+
+              return (
+                <motion.line
+                  key={`${node.id}-${depId}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={isHighlighted ? "#60a5fa" : "#1e293b"}
+                  strokeWidth={isHighlighted ? 2 : 1}
+                  strokeDasharray="4 4"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                  opacity={isHighlighted ? 0.8 : 0.3}
+                />
+              );
+            })
+          )}
+        </svg>
+
+        {/* Nodes */}
+        {nodes.map((node, idx) => {
+          const cfg = statusConfig[node.status];
+          const Icon = cfg.icon;
+
+          return (
+            <motion.div
+              key={node.id}
+              className="absolute"
+              style={{
+                left: `${node.col * 320}px`,
+                top: `${node.row * 200}px`,
+                width: '280px'
+              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.1 }}
+              onMouseEnter={() => setHoveredNode(node.id)}
+              onMouseLeave={() => setHoveredNode(null)}
+            >
+              <div 
+                className={`relative p-5 rounded-xl border backdrop-blur-sm transition-all duration-300 ${
+                  cfg.bg
+                } ${cfg.border} ${
+                  hoveredNode === node.id ? 'scale-105 shadow-2xl ' + cfg.glow : 'shadow-lg'
+                }`}
+              >
+                {/* Status Icon */}
+                <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full border-2 ${cfg.border} ${cfg.bg} flex items-center justify-center backdrop-blur-md`}>
+                  <Icon className={`w-5 h-5 ${cfg.color}`} />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-brand-text font-semibold text-lg mb-2 pr-6">
+                  {node.title}
+                </h3>
+                <p className="text-brand-muted text-sm mb-3 leading-relaxed">
+                  {node.desc}
+                </p>
+
+                {/* Status Badge */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-medium ${cfg.color}`}>
+                    {cfg.label}
+                  </span>
+                  {node.status !== "locked" && (
+                    <Link 
+                      to={`/topics/${node.slug}`}
+                      className="text-xs text-brand-accent hover:text-blue-400 transition-colors flex items-center gap-1 group"
+                    >
+                      Explore
+                      <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============ MAIN COMPONENT ============
 export default function CareerPage() {
   const { career } = useParams<{ career: string }>();
   const data = career ? careersData[career] : undefined;
 
   if (!data) {
     return (
-      <div className="container-custom py-12 text-center">
-        <h1 className="text-4xl text-brand-text mb-4">Career Not Found</h1>
-        <p className="text-brand-muted mb-8">We couldn't find the career path you're looking for.</p>
-        <Link to="/" className="text-brand-accent hover:underline">Back to Home</Link>
+      <div className="container-custom py-16 text-center">
+        <h1 className="text-3xl text-brand-text mb-4">Career Not Found</h1>
+        <Link to="/careers" className="text-brand-accent hover:underline">
+          Browse all careers →
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="container-custom py-12">
-      <nav className="flex items-center gap-2 text-sm text-brand-muted mb-10">
-        <Link to="/" className="hover:text-brand-accent transition-colors">Home</Link>
-        <span>/</span>
-        <span className="text-brand-text">{data.title}</span>
-      </nav>
-
-      <div className="max-w-3xl mb-14">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-xs font-medium px-3 py-1 rounded-full bg-[#1e3a5f] text-brand-accent border border-blue-900">
-            {data.demand}
-          </span>
+    <div className="min-h-screen bg-brand-background">
+      {/* Breadcrumb */}
+      <div className="border-b border-brand-border bg-brand-surface/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container-custom py-3">
+          <div className="flex items-center gap-2 text-sm text-brand-muted">
+            <Link to="/" className="hover:text-brand-text transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <span className="text-brand-text">{data.title}</span>
+          </div>
         </div>
-        <h1 className="text-4xl text-brand-text mb-4">{data.title}</h1>
-        <p className="text-xl text-brand-muted mb-4">{data.tagline}</p>
-        <p className="text-brand-muted leading-relaxed">{data.description}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2">
-          <h2 className="text-2xl text-brand-text mb-8">Learning Roadmap</h2>
-          <div className="space-y-3">
-            {data.roadmap.map((node) => {
-              const cfg = statusConfig[node.status];
-              const Icon = cfg.icon;
-              return (
-                <div
-                  key={node.id}
-                  className={`flex items-start gap-4 p-5 rounded-lg border ${cfg.border} ${cfg.bg} transition-colors`}
-                >
-                  <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full border ${cfg.border} flex items-center justify-center`}>
-                    <Icon className={`w-4 h-4 ${cfg.color}`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-brand-text font-medium">{node.title}</h3>
-                      <span className={`text-xs ${cfg.color} shrink-0`}>{cfg.label}</span>
-                    </div>
-                    <p className="text-brand-muted text-sm mt-1">{node.desc}</p>
-                    {node.status !== "locked" && (
-                      <Link
-                        to={`/topics/${node.slug}`}
-                        className="inline-block mt-2 text-xs text-brand-accent hover:underline"
-                      >
-                        View topic &rarr;
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div className="container-custom py-12">
+        {/* Header */}
+        <motion.div 
+          className="mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium mb-4">
+            {data.demand}
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold text-brand-text mb-4">
+            {data.title}
+          </h1>
+          <p className="text-xl text-brand-muted max-w-3xl">
+            {data.tagline}
+          </p>
+          <p className="text-brand-muted mt-4 max-w-3xl leading-relaxed">
+            {data.description}
+          </p>
+        </motion.div>
 
-        <div>
-          <h2 className="text-2xl text-brand-text mb-8">Shared Foundations</h2>
-          <div className="space-y-4">
-            {data.foundations.map((f, idx) => (
-              <div key={idx} className="p-5 rounded-lg border border-brand-border bg-brand-surface hover:border-brand-accent transition-colors">
-                <h3 className="text-brand-text font-medium mb-2">{f.title}</h3>
-                <p className="text-brand-muted text-sm leading-relaxed">{f.desc}</p>
-              </div>
+        {/* Interactive Roadmap Graph */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-brand-text">
+              Learning Roadmap
+            </h2>
+            <span className="text-sm text-brand-muted">
+              {data.roadmap.filter(n => n.status === 'completed').length} / {data.roadmap.length} completed
+            </span>
+          </div>
+
+          <div className="bg-brand-surface/30 rounded-2xl border border-brand-border p-8 backdrop-blur-sm">
+            <RoadmapGraph nodes={data.roadmap} />
+          </div>
+        </motion.div>
+
+        {/* Foundations */}
+        <motion.div 
+          className="mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h2 className="text-2xl font-bold text-brand-text mb-6">
+            Shared Foundations
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {data.foundations.map((foundation, idx) => (
+              <motion.div
+                key={idx}
+                className="p-6 rounded-lg border border-brand-border bg-brand-surface/50 backdrop-blur-sm hover:border-brand-muted transition-colors"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + idx * 0.1 }}
+              >
+                <h3 className="text-brand-text font-semibold text-lg mb-2">
+                  {foundation.title}
+                </h3>
+                <p className="text-brand-muted text-sm">
+                  {foundation.desc}
+                </p>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
